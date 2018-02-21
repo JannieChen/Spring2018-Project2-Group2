@@ -32,6 +32,14 @@ And we visualize the combination of the information about parties and crimes on 
 
 ![screenshot](doc/screenshot1.png)
 
+
+Our Targer Users:
+1.	Taxi driver
+2.	NYPD
+3.	People want to hold or join a party
+4.	People who want to find a quiet and safe place
+
+
 In this second project of GR5243 Applied Data Science, we develop an *Exploratory Data Analysis and Visualization* shiny app on a topic of your choice using U.S. government open data released on the [data.gov](https://data.gov/) website and (https://opendata.cityofnewyork.us). See [Project 2 Description](doc/project2_desc.md) for more details.  
 
 The **learning goals** for this project is:

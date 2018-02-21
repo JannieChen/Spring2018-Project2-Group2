@@ -9,9 +9,9 @@ navbarPage("Party & Crime in NYC", id="nav",
                         
                         tags$head(
                           # Include our custom CSS
-                          includeCSS("styles.css"),
-                          includeScript("gomap.js"),
-                          includeScript("message-handler.js")
+                          includeCSS("../data/styles.css"),
+                          includeScript("../data/gomap.js"),
+                          includeScript("../data/message-handler.js")
                         ),
                         
                         # If not using custom CSS, set height of leafletOutput to a number instead of percent

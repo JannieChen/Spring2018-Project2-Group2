@@ -103,7 +103,7 @@ source("plotTheme.R")
 
 #crime data set keran
 
-nyc<- geojsonio::geojson_read("Boundaries.geojson", what = "sp")
+nyc<- geojsonio::geojson_read("../data/Boundaries.geojson", what = "sp")
 colnames(felony)<- c("Offense",2000:2016)
 name<- felony[,1]
 felony$base<-felony[,1]
