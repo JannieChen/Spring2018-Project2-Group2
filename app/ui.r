@@ -1,6 +1,6 @@
 library(leaflet)
 library(plotly)
-navbarPage("Party & Crime in NYC", id="nav",
+navbarPage(strong("Party & Crime in NYC"), id="nav",
            
            ######################### Interactive Map #########################
            
@@ -34,7 +34,8 @@ navbarPage("Party & Crime in NYC", id="nav",
                                                   choices = list('the whole week' = 2, 'Weekdays' = 1, 
                                                                  'Weekends' =  0)),
                                       
-                                      textInput('zipcode', label = h3('Zip Code'), value = '99999')
+                                      textInput('zipcode', label = h3('Zip Code'), value = '99999'),
+                                      h5("('99999' means the NYC entire area)")
                                   
                         ),
                         
