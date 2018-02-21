@@ -46,11 +46,11 @@ The **learning goals** for this project is:
 
 + **Contribution statement**:
 
-Mengqi Chen: Grasped and cleaned ¡°party¡± data; and in charge of the summary of party data including a bar map, histograms showing the number of parties in months and the location type of parties in boroughs.
+Mengqi Chen: Grasped and cleaned ??party?? data; and in charge of the summary of party data including a bar map, histograms showing the number of parties in months and the location type of parties in boroughs.
 
 Xiaochen Fan: Processed "crime" data, make it easier to be plotted on the map. Selected data according to the crime type and inputted time and data range. Used leaflet to plot crime data on the map.
 
-Keran Li: Cleaned and narrowed ¡°nypd17¡± dataset and "felony" dataset. Did the analysis of party data including pieplot, the yearly change of felony, the crime number for boroughs, and the overlap lacation of party and crime by using leaflet and ggplot. And helped intergrate the final shiny app.
+Keran Li: Cleaned and narrowed ??nypd17?? dataset and "felony" dataset. Did the analysis of party data including pieplot, the yearly change of felony, the crime number for boroughs, and the overlap lacation of party and crime by using leaflet and ggplot. And helped intergrate the final shiny app.
 
 Following [suggestions](http://nicercode.github.io/blog/2013-04-05-projects/) by [RICH FITZJOHN](http://nicercode.github.io/about/#Team) (@richfitz). This folder is orgarnized as follows.
 
