@@ -36,7 +36,7 @@ And we visualize the combination of the information about parties and crimes on 
 Our Target Users:
 1.	Taxi driver
 2.	NYPD
-3.	People want to hold or join a party
+3.	People who want to hold or join a party
 4.	People who want to find a quiet and safe place
 
 ![screenshot](doc/screenshot3.jpeg)
