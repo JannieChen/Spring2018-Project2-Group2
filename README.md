@@ -33,12 +33,13 @@ And we visualize the combination of the information about parties and crimes on 
 ![screenshot](doc/screenshot1.png)
 
 
-Our Targer Users:
+Our Target Users:
 1.	Taxi driver
 2.	NYPD
-3.	People want to hold or join a party
+3.	People who want to hold or join a party
 4.	People who want to find a quiet and safe place
 
+![screenshot](doc/screenshot3.jpeg)
 
 In this second project of GR5243 Applied Data Science, we develop an *Exploratory Data Analysis and Visualization* shiny app on a topic of your choice using U.S. government open data released on the [data.gov](https://data.gov/) website and (https://opendata.cityofnewyork.us). See [Project 2 Description](doc/project2_desc.md) for more details.  
 
@@ -59,7 +60,7 @@ Mengqi Chen: Grasped and cleaned "party" data; and in charge of the summary of p
 
 Xiaochen Fan: Processed "crime" data, make it easier to be plotted on the map. Selected data according to the crime type and inputted time and data range. Used leaflet to plot crime data on the map.
 
-Keran Li: Cleaned and narrowed "nypd17" dataset and "felonyint" dataset. Did the visualization of party data including pieplot, the yearly change of felony, the crime number for boroughs, and the overlap lacation of party and crime by using leaflet and ggplot. And helped integrate and code the final shiny app.
+Keran Li: Cleaned "nypd17" dataset and "felonyint" dataset. Visualized crime data (the pie plot) and coded the interactive pictures ("seven felony", "five boroughs crime" and "location overlap") in the "Crime Analysis" page. Built the ui and server of it. Helped integrate and combine the final shiny app. Wrote github readme file.
 
 Xinlei Cao: Data cleaning and processing including the conversion of format, etc.; Built parts of the UI interface of the interactive map(the ui.R); Coding and realization of parts of algorithms of the interactive map including the visualization of the data of parties in NYC and the data of crime(the server.R).
 
