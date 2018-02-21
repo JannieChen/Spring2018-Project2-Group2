@@ -1,4 +1,4 @@
-# Project: NYC Open Data
+# Project: Where to Party
 ### Data folder
 
 The data directory contains data used in the analysis. 
