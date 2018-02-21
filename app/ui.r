@@ -1,42 +1,158 @@
-library(shiny)
 library(leaflet)
+library(plotly)
+navbarPage("Party & Crime in NYC", id="nav",
+           
+           ######################### Interactive Map #########################
+           
+           tabPanel("Interactive map",
+                    div(class="outer",
+                        
+                        tags$head(
+                          # Include our custom CSS
+                          includeCSS("styles.css"),
+                          includeScript("gomap.js"),
+                          includeScript("message-handler.js")
+                        ),
+                        
+                        # If not using custom CSS, set height of leafletOutput to a number instead of percent
+                        leafletOutput("mapplot", width="100%", height="100%"),
+                        
+                        # Shiny versions prior to 0.11 should use class = "modal" instead.
+                        absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
+                                      draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
+                                      width = 330, height = "auto",
+                                      
+                                      checkboxGroupInput('locationtype', 
+                                                         label = h3('Party Type'), 
+                                                         choiceNames = list('Residential Building/House', 'Street/Sidewalk', 
+                                                                            'Club/Bar/Restaurant', 'Store/Commercial',
+                                                                            'Park/Playground', 'House of Worship'),
+                                                         choiceValues = list(1, 2, 3, 4, 5, 6)
+                                      ),
+                                      
+                                      selectInput('weekday', label = h3('Weekdays or Weekends'), 
+                                                  choices = list('the whole week' = 2, 'Weekdays' = 1, 
+                                                                 'Weekends' =  0)),
+                                      
+                                      textInput('zipcode', label = h3('Zip Code'), value = '99999')
+                                  
+                        ),
+                        
+                        absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
+                                      draggable = TRUE, top = 60, left = 20, right = "auto", bottom = "auto",
+                                      width = 330, height = "auto",
+                                      
+                                      checkboxGroupInput('crimetype', label = h3('Crime Type'), 
+                                                         choiceNames = list('felony', 'misdemeanor'), 
+                                                         choiceValues = list(1, 2)),
+                                      
+                                      dateRangeInput('daterange1', label = h3('Date range:'), start = '2017-01-01', 
+                                                     end = '2017-01-01', min = '2017-01-01', max = '2017-12-31',
+                                                     format = 'mm/dd/yy', separator = ' - '),
+                                      
+                                      sliderInput('time', label = h3('Time:'), min = 0, max = 24, value = c(0, 24), 
+                                                  step = 1, sep = ':'),
+                                      
+                                      actionButton("action1", label = "Search")
+                                      
+                        ),
+                        
+                        absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
+                                      top = "auto", left = 20, right = "auto", bottom = 5,
+                                      width = "auto", height = "auto",
+                                      
+                                      br(),
+                                      
+                                      strong("Crime Legend"),
+                                      
+                                      h5("FELONY", style = "color:blue"),
+                                      h5("MISDEMEANOR", style = "color:red")
+                                      
+                        )
+                        
+                    )
+           ),
+           
+           ######################### Crime Analysis #########################
+           
+           tabPanel("Crime Analysis",
+                    
+                    fluidRow(h3("Seven Type of Felony", style="text-align:center"),
+                             
+                             column(12,
+                                    fluidRow(column(2),
+                                             column(10,  plotlyOutput("yearplot"))
+                                    ),
+                                    
+                                    h3("2017 Number of Crimes", style="text-align:center"),
+                                    
+                                    fluidRow(column(2),
+                                             column(10, img(src = "total.jpg", height = 566, width = 843)))
+                                    )
+                             ),
+                    
+                    h3("The Crime Number over 5 Boroughs", style="text-align:center"),
+                    leafletOutput("mymap"),
+                    
+                    
+                    p(),
+                    
 
-# Define UI for application that draws a histogram
-shinyUI(fluidPage(
-  
-  # Application title
-  titlePanel("2009 Manhattan Housing Sales"),
-  
-  # Sidebar with a selector input for neighborhood
-  sidebarLayout(
-    sidebarPanel(
-      selectInput("nbhd", label = h5("Choose a Manhattan Neighborhood"), 
-                         choices = list("all neighborhoods"=0,
-                                        "Central Harlem"=1, 
-                                        "Chelsea and Clinton"=2,
-                                        "East Harlem"=3, 
-                                        "Gramercy Park and Murray Hill"=4,
-                                        "Greenwich Village and Soho"=5, 
-                                        "Lower Manhattan"=6,
-                                        "Lower East Side"=7, 
-                                        "Upper East Side"=8, 
-                                        "Upper West Side"=9,
-                                        "Inwood and Washington Heights"=10), 
-                         selected = 0)
-      #sliderInput("p.range", label=h3("Price Range (in thousands of dollars)"),
-      #            min = 0, max = 20000, value = c(200, 10000))
-    ),
-    # Show two panels
-    mainPanel(
-      #h4(textOutput("text")),
-      h3(code(textOutput("text1"))),
-      tabsetPanel(
-        # Panel 1 has three summary plots of sales. 
-        tabPanel("Sales summary", plotOutput("distPlot")), 
-        # Panel 2 has a map display of sales' distribution
-        tabPanel("Sales map", plotOutput("distPlot1"))),
-      leafletOutput("map", width = "80%", height = "400px")
-    )
- )
-))
+                    p(),
+                    
+                    sidebarLayout(
+                      sidebarPanel(
+                        helpText("Create demographic graph with information from the NYPD."),
+                        
+                        selectInput("var", 
+                                    label = "Choose a crime to display",
+                                    choices = c("TOTAL","VIOLATION", "MISDEMEANOR","FELONY"),
+                                    selected = "TOTAL"),
+                        
+                        sliderInput("range", 
+                                    label = "Range of Time (month):",
+                                    min = 1, max = 12, value = c(1,12))
+                        ),
+                      
+                      
+                      mainPanel(
+                        plotOutput("selected_var")
+                      )
+                    )
+           ),
+           
+           ######################### Party Analysis #########################
+           
+           tabPanel("Party Analysis",
+                    
+                    fluidPage(
+                      titlePanel("The number of parties"),
+                      sidebarLayout(position = "left",
+                                    # Select date range to plot
+                                    dateRangeInput("date", strong("Date Range"), start="2017-01-01", end="2017-12-31", min="2017-01-01", max="2017-12-31"),
+                                    # Select weekday or weekend
+                                    radioButtons("work", strong("Weekday/weekend"), choices = list("All" = 2,  "Weekday" =1 , "Weekend" = 0),selected = 2)
+                      ),
+                      mainPanel(
+                        plotlyOutput("histplot")
+                      )
+                      
+                      
+                    ),
+                    tags$a(href="https://opendata.cityofnewyork.us", "Data Source:NYC Party 2017", target = "_blank"),
+                    
+                    p(),
+                    
+                    
+                    
+                    h3("...", style="text-align:center"),
+                    mainPanel(
+                      plotlyOutput("cmqplot")
+                    )
+                    
+           )
+           
+           #conditionalPanel("false", icon("crosshair"))
+)
+
 

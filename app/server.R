@@ -1,168 +1,342 @@
+######################### Library Packages #########################
+packages.used=c('shiny', 'leaflet', 'dplyr', 'reshape2', 'ggplot2', 'stringr',
+                'geojson', 'geojsonio', 'ggthemes', 'plotly')
+
+# check packages that need to be installed.
+packages.needed=setdiff(packages.used, 
+                        intersect(installed.packages()[,1], 
+                                  packages.used))
+# install additional packages
+if(length(packages.needed)>0){
+  install.packages(packages.needed, dependencies = TRUE)
+}
+
 library(shiny)
-library(choroplethr)
-library(choroplethrZip)
-library(dplyr)
 library(leaflet)
-library(maps)
-library(rgdal)
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+library(stringr)
+library(geojson)
+library(geojsonio)
+library(ggthemes)
+library(plotly)
 
-## Define Manhattan's neighborhood
-man.nbhd=c("all neighborhoods", "Central Harlem", 
-           "Chelsea and Clinton",
-           "East Harlem", 
-           "Gramercy Park and Murray Hill",
-           "Greenwich Village and Soho", 
-           "Lower Manhattan",
-           "Lower East Side", 
-           "Upper East Side", 
-           "Upper West Side",
-           "Inwood and Washington Heights")
-zip.nbhd=as.list(1:length(man.nbhd))
-zip.nbhd[[1]]=as.character(c(10026, 10027, 10030, 10037, 10039))
-zip.nbhd[[2]]=as.character(c(10001, 10011, 10018, 10019, 10020))
-zip.nbhd[[3]]=as.character(c(10036, 10029, 10035))
-zip.nbhd[[4]]=as.character(c(10010, 10016, 10017, 10022))
-zip.nbhd[[5]]=as.character(c(10012, 10013, 10014))
-zip.nbhd[[6]]=as.character(c(10004, 10005, 10006, 10007, 10038, 10280))
-zip.nbhd[[7]]=as.character(c(10002, 10003, 10009))
-zip.nbhd[[8]]=as.character(c(10021, 10028, 10044, 10065, 10075, 10128))
-zip.nbhd[[9]]=as.character(c(10023, 10024, 10025))
-zip.nbhd[[10]]=as.character(c(10031, 10032, 10033, 10034, 10040))
+#########################  Load Dataset   #########################
+party <- read.csv('../data/party.csv', stringsAsFactors = FALSE)
+crime <- read.csv("../data/Crime.csv", stringsAsFactors = FALSE)
 
-## Load housing data
-load("../output/count.RData")
-load("../output/mh2009use.RData")
+felony<- read.csv("../data/felonyint.csv")
+nypd17<- read.csv("../data/nypd17.csv")
+month <- substring(party$open.date,6,7)
 
-# Define server logic required to draw a histogram
-shinyServer(function(input, output) {
+
+######################### Process Dataset #########################
+
+# Party Dataset
+party <- party %>% 
+           select("Location.Type", "Incident.Zip", "Borough", 
+                  "Latitude", "Longitude", "open.date",
+                  "open.time", "weekday", "work")
+party <- party[!is.na(party$Latitude) & !is.na(party$Longitude), ]
+party <- party[party$Borough != "Unspecified",]
+party$Location.Type[party$Location.Type == "Residential Building/House"] <- 1
+party$Location.Type[party$Location.Type == "Street/Sidewalk"] <- 2
+party$Location.Type[party$Location.Type == "Club/Bar/Restaurant"] <- 3
+party$Location.Type[party$Location.Type == "Store/Commercial"] <- 4
+party$Location.Type[party$Location.Type == "Park/Playground"] <- 5
+party$Location.Type[party$Location.Type == "House of Worship"] <- 6
+party <- party[party$Location.Type == c(1, 2, 3, 4, 5, 6), ]
+
+changetime = function(a){
+  b = as.character(a[7])
+  l = nchar(b)
+  apm = substr(b, start = l-1, stop = l)
+  if(apm=='AM'){
+    return(as.numeric(substr(b, start = 1, stop = l-9)))
+  }
+  else{
+    return(as.numeric(substr(b, start = 1, stop = l-9))+12)
+  }
+}
+
+party[7] <- apply(party, MARGIN = 1, changetime)
+
+
+# Crime Dataset
+
+# crime.update <- read.csv("NYPDM.csv", stringsAsFactors = FALSE)
+# crime.update <- crime.update %>%
+#                   select("CMPLNT_TO_DT", "CMPLNT_TO_TM", "LAW_CAT_CD",
+#                          "BORO_NM", "Latitude", "Longitude")
+# colnames(crime.update) <- c("date", "time", "crime_type","BORO_NM", "Latitude", "Longitude")
+# crime.update <- crime.update[!is.na(crime.update$Latitude) & !is.na(crime.update$Longitude), ]
+# crime.update <- crime.update[!is.na(crime.update$time), ]
+# crime.update <- crime.update[-which(crime.update$crime_type == "VIOLATION"), ]
+# crime.update$date <- as.Date(crime.update$date, format = "%m/%d/%Y")
+# crime.update<- crime.update[crime.update$date >= "2017-01-01",]
+# crime.update<- crime.update[crime.update$date <= "2017-12-31",]
+# 
+# changetime = function(a){
+#   b = as.character(a[2])
+#   l = nchar(b)
+#   return(as.numeric(substr(b, start = 1, stop = l-6)))
+# }
+# 
+# crime.update[2] <- apply(crime.update, MARGIN = 1, changetime)
+# 
+# changecrime_type = function(a){
+#   b = a[3]
+#   if(b == "FELONY")
+#     return(as.numeric(1))
+#   else(b == "MISDEMEANOR")
+#   return(as.numeric(2))
+# }
+# 
+# crime.update[3] <- apply(crime.update, MARGIN = 1, changecrime_type)
+
+nullcrime<- crime[0,]
+nullparty<- party[0,]
+
+######################### Call Function #########################
+source("plotTheme.R")
+
+#crime data set keran
+
+nyc<- geojsonio::geojson_read("Boundaries.geojson", what = "sp")
+colnames(felony)<- c("Offense",2000:2016)
+name<- felony[,1]
+felony$base<-felony[,1]
+felony<- felony[-8,]
+felony1 <- melt(felony)
+m <- leaflet() %>%
+      addTiles() %>%
+      setView(-73.935242, 	40.730610, zoom = 10)
+
+nyc$num<- c(20856,111647,134715,89516,101306)
+bins <- c(10000,50000,100000, 120000,Inf)
+pal <- colorBin("YlOrRd", domain = nyc$num, bins = bins)
+nyc$num2<- c("Violation: 4624
+             Misdemeanor:11915
+             Felony:4771",
+             "Violation: 13271
+             Misdemeanor:65814
+             Felony:35391",
+             "Violation: 19794
+             Misdemeanor:73709
+             Felony:44238",
+             "Violation: 14274
+             Misdemeanor:47994
+             Felony:29468",
+             "Violation: 15368
+             Misdemeanor:59333
+             Felony:28797")
+labels <- sprintf("<strong>%s</strong><br/>%s", nyc$boro_name, nyc$num2) %>% 
+            lapply(htmltools::HTML)
+
+
+shinyServer(function(input, output, session){
   
-  ## Neighborhood name
-  output$text = renderText({"Selected:"})
-  output$text1 = renderText({
-      paste("{ ", man.nbhd[as.numeric(input$nbhd)+1], " }")
-  })
+  ######################### Interactive Map #########################
+  # Interactive Map (Party Part): Xinlei Cao, Xinrou Li 
+  # Interactive Map (Crime Part): Xiaochen Fan
   
-  ## Panel 1: summary plots of time trends, 
-  ##          unit price and full price of sales. 
-  
-  output$distPlot <- renderPlot({
+  datafinal <- eventReactive(input$action1, {
+    ######################### Party Dataset #########################
+    party01 = party %>% 
+      # filter date range
+      filter(open.date >= as.Date(input$daterange1[1]) & open.date <= as.Date(input$daterange1[2])) %>%
+      # filter time range
+      filter(open.time >= input$time[1] & open.date <= input$time[2]) 
     
-    ## First filter data for selected neighborhood
-    mh2009.sel=mh2009.use
-    if(input$nbhd>0){
-      mh2009.sel=mh2009.use%>%
-                  filter(region %in% zip.nbhd[[as.numeric(input$nbhd)]])
+    # filter weekday or weekend
+    if(input$weekday == 1 | input$weekday==0){
+      party01 = party01 %>%
+        filter(work == input$weekday)
     }
     
-    ## Monthly counts
-    month.v=as.vector(table(mh2009.sel$sale.month))
-    
-    ## Price: unit (per sq. ft.) and full
-    type.price=data.frame(bldg.type=c("10", "13", "25", "28"))
-    type.price.sel=mh2009.sel%>%
-                group_by(bldg.type)%>%
-                summarise(
-                  price.mean=mean(sale.price, na.rm=T),
-                  price.median=median(sale.price, na.rm=T),
-                  unit.mean=mean(unit.price, na.rm=T),
-                  unit.median=median(unit.price, na.rm=T),
-                  sale.n=n()
-                )
-    type.price=left_join(type.price, type.price.sel, by="bldg.type")
-    
-    ## Making the plots
-    layout(matrix(c(1,1,1,1,2,2,3,3,2,2,3,3), 3, 4, byrow=T))
-    par(cex.axis=1.3, cex.lab=1.5, 
-        font.axis=2, font.lab=2, col.axis="dark gray", bty="n")
-    
-    ### Sales monthly counts
-    plot(1:12, month.v, xlab="Months", ylab="Total sales", 
-         type="b", pch=21, col="black", bg="red", 
-         cex=2, lwd=2, ylim=c(0, max(month.v,na.rm=T)*1.05))
-    
-    ### Price per square foot
-    plot(c(0, max(type.price[,c(4,5)], na.rm=T)), 
-         c(0,5), 
-         xlab="Price per square foot", ylab="", 
-         bty="l", type="n")
-    text(rep(0, 4), 1:4+0.5, paste(c("coops", "condos", "luxury hotels", "comm. condos"), 
-                                  type.price$sale.n, sep=": "), adj=0, cex=1.5)
-    points(type.price$unit.mean, 1:nrow(type.price), pch=16, col=2, cex=2)
-    points(type.price$unit.median, 1:nrow(type.price),  pch=16, col=4, cex=2)
-    segments(type.price$unit.mean, 1:nrow(type.price), 
-              type.price$unit.median, 1:nrow(type.price),
-             lwd=2)    
-    
-    ### full price
-    plot(c(0, max(type.price[,-1], na.rm=T)), 
-         c(0,5), 
-         xlab="Sales Price", ylab="", 
-         bty="l", type="n")
-    text(rep(0, 4), 1:4+0.5, paste(c("coops", "condos", "luxury hotels", "comm. condos"), 
-                                   type.price$sale.n, sep=": "), adj=0, cex=1.5)
-    points(type.price$price.mean, 1:nrow(type.price), pch=16, col=2, cex=2)
-    points(type.price$price.median, 1:nrow(type.price),  pch=16, col=4, cex=2)
-    segments(type.price$price.mean, 1:nrow(type.price), 
-             type.price$price.median, 1:nrow(type.price),
-             lwd=2)    
-  })
-  
-  ## Panel 2: map of sales distribution
-  output$distPlot1 <- renderPlot({
-    count.df.sel=count.df
-    if(input$nbhd>0){
-      count.df.sel=count.df%>%
-        filter(region %in% zip.nbhd[[as.numeric(input$nbhd)]])
-    }
-    # make the map for selected neighhoods
-    
-    zip_choropleth(count.df.sel,
-                   title       = "2009 Manhattan housing sales",
-                   legend      = "Number of sales",
-                   county_zoom = 36061)
-  })
-  
-  ## Panel 3: leaflet
-  output$map <- renderLeaflet({
-    count.df.sel=count.df
-    if(input$nbhd>0){
-      count.df.sel=count.df%>%
-        filter(region %in% zip.nbhd[[as.numeric(input$nbhd)]])
+    # filter zipcode
+    if(input$zipcode == 99999){
+      party01
+    } else {
+      if(is.element(input$zipcode, unique(party$Incident.Zip))){
+        party01 = party01 %>%
+          filter(Incident.Zip == input$zipcode)
+      } else {
+        session$sendCustomMessage(type = 'testmessage',
+                                  message = 'Please Input a Vaild Zipcode')
+      }
     }
     
-    # From https://data.cityofnewyork.us/Business/Zip-Code-Boundaries/i8iw-xf4u/data
-    NYCzipcodes <- readOGR("../data/ZIP_CODE_040114.shp",
-                           #layer = "ZIP_CODE", 
-                           verbose = FALSE)
+    # filter party type
+    lt = input$locationtype
+    l = length(lt)
+    if(l==0){
+      party01 = nullparty
+    }else{
+      a = 'party01 %>% filter('
+      for (i in lt) {
+        a = paste(a, 'Location.Type == lt[', i, '] | ', sep = '')
+      }
+      a = substr(a, start = 1, stop = nchar(a)-3)
+      a = paste(a, ')', sep = '')
+      party01 = eval(parse(text = a))
+    }
     
-    selZip <- subset(NYCzipcodes, NYCzipcodes$ZIPCODE %in% count.df.sel$region)
+    ######################### Crime Dataset #########################
+    crime01 = crime %>% 
+      # filter date range
+      filter(date >= as.Date(input$daterange1[1]) & date <= as.Date(input$daterange1[2])) %>%
+      # filter time range
+      filter(time >= input$time[1] & time <= input$time[2])
+    # filter crime type
+    if (length(input$crimetype) == 0){
+      crime01 <- nullcrime
+      }
+    else{
+      if (length(input$crimetype) == 1){
+        crime01 <- crime01 %>%
+          filter(crime_type == input$crimetype)
+      }
+      else{
+        crime01 <- crime01
+        }
+    }
     
-    # ----- Transform to EPSG 4326 - WGS84 (required)
-    subdat<-spTransform(selZip, CRS("+init=epsg:4326"))
-    
-    # ----- save the data slot
-    subdat_data=subdat@data[,c("ZIPCODE", "POPULATION")]
-    subdat.rownames=rownames(subdat_data)
-    subdat_data=
-      subdat_data%>%left_join(count.df, by=c("ZIPCODE" = "region"))
-    rownames(subdat_data)=subdat.rownames
-    
-    # ----- to write to geojson we need a SpatialPolygonsDataFrame
-    subdat<-SpatialPolygonsDataFrame(subdat, data=subdat_data)
-    
-    # ----- set uo color pallette https://rstudio.github.io/leaflet/colors.html
-    # Create a continuous palette function
-    pal <- colorNumeric(
-      palette = "Blues",
-      domain = subdat$POPULATION
-    )
-    
-    leaflet(subdat) %>%
-      addTiles()%>%
-      addPolygons(
-        stroke = T, weight=1,
-        fillOpacity = 0.6,
-        color = ~pal(POPULATION)
-      )
+    # Ouput two datasets as a list
+    final<- list(party01, crime01)
+    final
   })
+  
+  # 
+  output$mapplot <- renderLeaflet({
+    leaflet() %>%
+      #addProviderTiles(providers$MtbMap)  %>%
+      addTiles() %>%  # Add default OpenStreetMap map tiles
+      #clearMarkers() %>%
+      setView(lng = -74.0060, lat = 40.7128, zoom = 11) # set the NY Map
+    
+  })
+  
+  # Observe crime event
+  
+  observe({
+    if(nrow(datafinal()[[2]]) == 0) {leafletProxy("mapplot") %>% clearShapes()} 
+    else{
+      leafletProxy("mapplot") %>% 
+        clearShapes() %>% 
+        addCircles(lng = datafinal()[[2]]$Longitude, lat = datafinal()[[2]]$Latitude, 
+                   radius = 0.1, color = ifelse(datafinal()[[2]]$crime_type == 1, "blue", "red"))
+    }
+  })
+  
+  # Observe party event
+  
+  party_icon <- iconList(
+    party = makeIcon("icon_beer.png", "icon_beer@2x.png", 36, 36)
+  )
+
+  observe({
+    if(nrow(datafinal()[[1]]) == 0) {leafletProxy("mapplot") %>% clearMarkers()} 
+    else{
+      leafletProxy("mapplot") %>% 
+      clearMarkerClusters() %>% 
+      addMarkers(lng = datafinal()[[1]]$Longitude, lat = datafinal()[[1]]$Latitude,
+                 clusterOptions = markerClusterOptions(),
+                 icon = party_icon)
+    }
+  })
+  
+  
+  ######################### Crime Analysis #########################
+  # Crime Analysis: Keran Li
+  output$selected_var <- renderPlot({
+    
+    if(input$var == "TOTAL")
+      {
+        data<- nypd17[which(nypd17$month >= input$range[1] & nypd17$month <= input$range[2]), ]
+    }
+    if(input$var != "TOTAL")
+      {
+      data<- nypd17[which(nypd17$month>=input$range[1]&nypd17$month<=input$range[2]&
+                          nypd17$LAW_CAT_CD==input$var ), ]
+    }
+    
+    ggplot(data, aes(BORO_NM))+ 
+      geom_bar(aes(fill = clublocation), width = 0.5) + 
+      theme(axis.text.x = element_text(angle = 65, vjust = 0.6)) +
+      plotTheme() +
+      labs(subtitle ="Boroughs across Party Location") 
+  })
+  
+  output$yearplot<- renderPlotly({
+    print(
+      ggplotly(
+    ggplot(felony1, aes(variable, value, group = factor(base)))+
+      geom_line(aes(color = factor(base)))+
+      plotTheme() +
+      labs(x = "Year",y = "Number of Crimes",title = "Seven Type of Felony")+
+       geom_point(color = "pink3") + theme_gdocs()))
+  })
+  
+  output$mymap <- renderLeaflet({
+    leaflet(data = nyc) %>%
+      addTiles() %>%
+      addPolygons(color = "#444444", weight = 1, fillColor = ~pal(num), smoothFactor = 0.5,
+                  opacity = 0.7, fillOpacity = 0.5,
+                  highlightOptions = highlightOptions(color = "white", weight = 2,
+                                                      bringToFront = TRUE),
+                  label = labels,
+                  labelOptions = labelOptions(
+                                   style = list("font-weight" = "normal", padding = "3px 8px"),
+                                   textsize = "15px",
+                                   direction = "auto")) %>%
+      setView(-73.935242, 	40.730610, zoom = 10.5) %>%
+      addLegend(pal = pal, values = ~num, opacity = 0.7, title = NULL,
+                position = "topleft")
+  })
+  
+  
+  ######################### Party Analysis #########################
+  # Party Analysis: Mengqi Chen
+  selected <- reactive({
+    # req(input$date)
+    # validate(need(!is.na(input$date[1]) & !is.na(input$date[2]), "Error: Please provide both dates."))
+    # validate(need(input$date[1] < input$date[2], "Error: Start date should be earlier than end date."))
+    if(input$work==2){
+      party %>% filter(
+        open.date > as.Date(input$date[1]) & open.date < as.Date(input$date[2]))
+    }else{
+      party %>% 
+        filter(open.date > as.Date(input$date[1]) & open.date < as.Date(input$date[2])) %>%
+        filter(work == input$work)
+      
+    } 
+  })
+  
+
+  output$histplot<- renderPlotly({
+    print(
+      ggplotly(
+        ggplot(selected())+
+          geom_histogram(aes(x = selected()$Borough,fill=Location.Type), stat="count",na.rm=T)+
+          theme(axis.text.x =element_text(vjust=1)) + 
+          plotTheme() +
+          scale_fill_manual(values=c("steelblue2", "sienna2", "thistle2",
+                                     "cyan3", "pink3", "lightseagreen"),
+                            labels=c("Residential Building/House","Street/Sidewalk",
+                                     "Club/Bar/Restaurant", "Store/Commercial",
+                                     "Park/Playground", "House of Worship")
+          )))
+  })
+  
+  output$cmqplot<- renderPlotly({
+    print(
+      ggplotly(
+        ggplot(data.frame(as.character(month)))+
+          geom_bar(aes(x=month,fill=month), stat = "count")+
+          labs(title="The number of parties in each month",caption="There are more parties in summer")+
+          plotTheme()))
+  })
+  
 })
