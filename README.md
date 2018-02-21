@@ -6,7 +6,7 @@
 
 
 
-## Project Title "Where to Party?"
+## Project Title "Where to Party in the NYC?"
 Term: Spring 2018
 
 Final Version: [Project 2 by Group 2](https://xinrouli.shinyapps.io/where_to_party2/)
@@ -20,7 +20,7 @@ Final Version: [Project 2 by Group 2](https://xinrouli.shinyapps.io/where_to_par
 	+ team member 5: Xiaochen Fan
 
 + **Project summary**: 
-This project mainly focuses on the relation between parties and crimes. Our shiny app is desiged to help people find the safest place to have a party. And We tried to give people who are interested in organizing or joining the parties some suggestion about 
+This project mainly focuses on the relation between parties and crimes of year 2017 happened in the new yrok city. Our shiny app is desiged to help people find the safest place to have a party. And We tried to give people who are interested in organizing or joining the parties some suggestion about 
 
 (1)	What type of parties is most popular?
 (2)	Where are the locations that fewer crimes will affect the parties?
