@@ -59,7 +59,7 @@ Mengqi Chen: Grasped and cleaned "party" data; and in charge of the summary of p
 
 Xiaochen Fan: Processed "crime" data, make it easier to be plotted on the map. Selected data according to the crime type and inputted time and data range. Used leaflet to plot crime data on the map.
 
-Keran Li: Cleaned and narrowed "nypd17" dataset and "felonyint" dataset. Did the visualization of party data including pieplot, the yearly change of felony, the crime number for boroughs, and the overlap lacation of party and crime by using leaflet and ggplot. And helped integrate and code the final shiny app.
+Keran Li: Cleaned and narrowed "nypd17" dataset and "felonyint" dataset. Visualized crime data (the pie plot) and coded the interactive pictures ("seven felony", "five boroughs crime" and "location overlap") in the "Crime Analysis" page. Built the ui and server of it. And helped integrate and combine the final shiny app.
 
 Xinlei Cao: Data cleaning and processing including the conversion of format, etc.; Built parts of the UI interface of the interactive map(the ui.R); Coding and realization of parts of algorithms of the interactive map including the visualization of the data of parties in NYC and the data of crime(the server.R).
 
