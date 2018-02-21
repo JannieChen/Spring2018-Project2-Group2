@@ -1,4 +1,4 @@
-######################### Library Packages #########################
+# ######################## Library Packages #########################
 # packages.used=c('shiny', 'leaflet', 'dplyr', 'reshape2', 'ggplot2', 'stringr',
 #                 'geojson', 'geojsonio', 'ggthemes', 'plotly')
 # 
@@ -66,6 +66,10 @@ party[7] <- apply(party, MARGIN = 1, changetime)
 
 # Crime Dataset
 
+# Because the Crime Dataset is too large,
+# We use the dataset that has been cleaned directly.
+# below are the codes that how we cleaned the Crime Data
+
 # crime.update <- read.csv("NYPDM.csv", stringsAsFactors = FALSE)
 # crime.update <- crime.update %>%
 #                   select("CMPLNT_TO_DT", "CMPLNT_TO_TM", "LAW_CAT_CD",
@@ -98,6 +102,12 @@ party[7] <- apply(party, MARGIN = 1, changetime)
 
 nullcrime<- crime[0,]
 nullparty<- party[0,]
+
+# Party Icon Function
+party_icon <- iconList(
+  party = makeIcon(iconUrl = "icon_beer.png", iconWidth = 36,
+                   iconHeight = 36)
+)
 
 ######################### Call Function #########################
 source("plotTheme.R")
