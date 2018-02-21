@@ -1,0 +1,12 @@
+name: where_to_party
+title: Where to Party
+username:
+account: xinrouli
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 285962
+bundleId: 1233691
+url: https://xinrouli.shinyapps.io/where_to_party/
+when: 1519233870.11037
+asMultiple: FALSE
+asStatic: FALSE

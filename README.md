@@ -9,7 +9,7 @@
 ## Project Title "Where to Party?"
 Term: Spring 2018
 
-
+Final Version: [Project 2 by Group 2](https://xinrouli.shinyapps.io/where_to_party2/)
 
 + Team #02
 
@@ -61,7 +61,10 @@ Xiaochen Fan: Processed "crime" data, make it easier to be plotted on the map. S
 
 Keran Li: Cleaned and narrowed "nypd17" dataset and "felonyint" dataset. Did the visualization of party data including pieplot, the yearly change of felony, the crime number for boroughs, and the overlap lacation of party and crime by using leaflet and ggplot. And helped integrate and code the final shiny app.
 
-Xinlei Cao: Data cleaning and processing including the conversion of format, etc.; Build parts of the UI interface of the interactive map(the ui.R); Coding and realization of parts of algorithms of the interactive map including the visualization of the data of parties in NYC and the data of crime(the server.R).
+Xinlei Cao: Data cleaning and processing including the conversion of format, etc.; Built parts of the UI interface of the interactive map(the ui.R); Coding and realization of parts of algorithms of the interactive map including the visualization of the data of parties in NYC and the data of crime(the server.R).
+
+Xinrou Li: Wrote codes about cleaning "Crime" dataset. Coded parts of the interactive map about visualization of the party location and selection panel. Built the overall UI structure. Combined all members' codes together(including server.R and ui.R), and organized and modified them to be consistent. 
+
 
 Following [suggestions](http://nicercode.github.io/blog/2013-04-05-projects/) by [RICH FITZJOHN](http://nicercode.github.io/about/#Team) (@richfitz). This folder is orgarnized as follows.
 

@@ -1,15 +1,15 @@
 ######################### Library Packages #########################
-packages.used=c('shiny', 'leaflet', 'dplyr', 'reshape2', 'ggplot2', 'stringr',
-                'geojson', 'geojsonio', 'ggthemes', 'plotly')
-
-# check packages that need to be installed.
-packages.needed=setdiff(packages.used, 
-                        intersect(installed.packages()[,1], 
-                                  packages.used))
-# install additional packages
-if(length(packages.needed)>0){
-  install.packages(packages.needed, dependencies = TRUE)
-}
+# packages.used=c('shiny', 'leaflet', 'dplyr', 'reshape2', 'ggplot2', 'stringr',
+#                 'geojson', 'geojsonio', 'ggthemes', 'plotly')
+# 
+# # check packages that need to be installed.
+# packages.needed=setdiff(packages.used,
+#                         intersect(installed.packages()[,1],
+#                                   packages.used))
+# # install additional packages
+# if(length(packages.needed)>0){
+#   install.packages(packages.needed, dependencies = TRUE)
+# }
 
 library(shiny)
 library(leaflet)
@@ -40,6 +40,7 @@ party <- party %>%
                   "open.time", "weekday", "work")
 party <- party[!is.na(party$Latitude) & !is.na(party$Longitude), ]
 party <- party[party$Borough != "Unspecified",]
+party$Party_Location_Type <- party$Location.Type
 party$Location.Type[party$Location.Type == "Residential Building/House"] <- 1
 party$Location.Type[party$Location.Type == "Street/Sidewalk"] <- 2
 party$Location.Type[party$Location.Type == "Club/Bar/Restaurant"] <- 3
@@ -319,15 +320,11 @@ shinyServer(function(input, output, session){
     print(
       ggplotly(
         ggplot(selected())+
-          geom_histogram(aes(x = selected()$Borough,fill=Location.Type), stat="count",na.rm=T)+
+          geom_histogram(aes(x = selected()$Borough,fill=Party_Location_Type), stat="count",na.rm=T)+
           theme(axis.text.x =element_text(vjust=1)) + 
-          plotTheme() +
-          scale_fill_manual(values=c("steelblue2", "sienna2", "thistle2",
-                                     "cyan3", "pink3", "lightseagreen"),
-                            labels=c("Residential Building/House","Street/Sidewalk",
-                                     "Club/Bar/Restaurant", "Store/Commercial",
-                                     "Park/Playground", "House of Worship")
-          )))
+          plotTheme(),
+          tooltip = c("selected()$Borough", "count")
+        ))
   })
   
   output$cmqplot<- renderPlotly({
@@ -336,7 +333,8 @@ shinyServer(function(input, output, session){
         ggplot(data.frame(as.character(month)))+
           geom_bar(aes(x=month,fill=month), stat = "count")+
           labs(title="The number of parties in each month",caption="There are more parties in summer")+
-          plotTheme()))
+          plotTheme())
+      )
   })
   
 })

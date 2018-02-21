@@ -9,9 +9,9 @@ navbarPage("Party & Crime in NYC", id="nav",
                         
                         tags$head(
                           # Include our custom CSS
-                          includeCSS("../data/styles.css"),
-                          includeScript("../data/gomap.js"),
-                          includeScript("../data/message-handler.js")
+                          includeCSS("styles.css"),
+                          includeScript("gomap.js"),
+                          includeScript("message-handler.js")
                         ),
                         
                         # If not using custom CSS, set height of leafletOutput to a number instead of percent
@@ -63,7 +63,7 @@ navbarPage("Party & Crime in NYC", id="nav",
                                       
                                       br(),
                                       
-                                      strong("Crime Legend"),
+                                      strong("Crime Type Legend"),
                                       
                                       h5("FELONY", style = "color:blue"),
                                       h5("MISDEMEANOR", style = "color:red")
@@ -77,47 +77,45 @@ navbarPage("Party & Crime in NYC", id="nav",
            
            tabPanel("Crime Analysis",
                     
-                    fluidRow(h3("Seven Type of Felony", style="text-align:center"),
-                             
-                             column(12,
-                                    fluidRow(column(2),
-                                             column(10,  plotlyOutput("yearplot"))
-                                    ),
-                                    
-                                    h3("2017 Number of Crimes", style="text-align:center"),
-                                    
-                                    fluidRow(column(2),
-                                             column(10, img(src = "total.jpg", height = 566, width = 843)))
-                                    )
-                             ),
-                    
-                    h3("The Crime Number over 5 Boroughs", style="text-align:center"),
-                    leafletOutput("mymap"),
-                    
-                    
-                    p(),
-                    
-
-                    p(),
-                    
-                    sidebarLayout(
-                      sidebarPanel(
-                        helpText("Create demographic graph with information from the NYPD."),
-                        
-                        selectInput("var", 
-                                    label = "Choose a crime to display",
-                                    choices = c("TOTAL","VIOLATION", "MISDEMEANOR","FELONY"),
-                                    selected = "TOTAL"),
-                        
-                        sliderInput("range", 
-                                    label = "Range of Time (month):",
-                                    min = 1, max = 12, value = c(1,12))
-                        ),
-                      
-                      
-                      mainPanel(
-                        plotOutput("selected_var")
-                      )
+                    wellPanel(style = "overflow-y:scroll; height: 850px; max-height: 750px; background-color: #ffffff;",
+                              br(),
+                              tabsetPanel(type="tabs",
+                                          tabPanel(title=strong("Seven Type of Felony"),
+                                                   br(),
+                                                   div(plotlyOutput("yearplot"), align="center")
+                                          ),
+                                          tabPanel(title=strong("2017 Number of Crimes"),
+                                                   br(),
+                                                   div(img(src="total.jpg", width=800), align="center",
+                                                       height = 566, width = 843)
+                                          ),
+                                          tabPanel(title=strong("The Crime Number over 5 Boroughs"),
+                                                   br(),
+                                                   div(leafletOutput("mymap"), align="center")
+                                          ),
+                                          tabPanel(title=strong("Location Overlap for Party and Crime"),
+                                                   br(),
+                                                   div(sidebarLayout(
+                                                     sidebarPanel(
+                                                       helpText("Create demographic graph with information from the NYPD."),
+                                                       
+                                                       selectInput("var",
+                                                                   label = "Choose a crime to display",
+                                                                   choices = c("TOTAL","VIOLATION", "MISDEMEANOR","FELONY"),
+                                                                   selected = "TOTAL"),
+                                                       
+                                                       sliderInput("range",
+                                                                   label = "Range of Time (month):",
+                                                                   min = 1, max = 12, value = c(1,12))
+                                                     ),
+                                                     
+                                                     
+                                                     mainPanel(
+                                                       plotOutput("selected_var")
+                                                     )
+                                                   ))
+                                          )
+                              )
                     )
            ),
            
@@ -151,8 +149,7 @@ navbarPage("Party & Crime in NYC", id="nav",
                     )
                     
            )
-           
-           #conditionalPanel("false", icon("crosshair"))
+
 )
 
 
